@@ -66,7 +66,7 @@ def sendfile(filename, targethost, port, result_queue, timeout=2):
 
 class KatcpFpga(CasperFpga, katcp.CallbackClient):
 
-    def __init__(self, host, port=7147, timeout=20.0, connect=True):
+    def __init__(self, host, port=7147, timeout=60.0, connect=True):
         """
 
         :param host:
@@ -76,7 +76,7 @@ class KatcpFpga(CasperFpga, katcp.CallbackClient):
         :return:
         """
         katcp.CallbackClient.__init__(self, host, port,
-                                      tb_limit=20, timeout=timeout,
+                                      tb_limit=60, timeout=timeout,
                                       logger=LOGGER, auto_reconnect=True)
         CasperFpga.__init__(self, host)
         self.system_info = {'last_programmed': '',
@@ -324,7 +324,7 @@ class KatcpFpga(CasperFpga, katcp.CallbackClient):
         # set the unhandled informs callback
         self.unhandled_inform_handler = \
             lambda msg: unhandled_informs.append(msg)
-        reply, _ = self.katcprequest(name='progdev', request_timeout=10,
+        reply, _ = self.katcprequest(name='progdev', request_timeout=60,
                                      request_args=(filename, ))
         self.unhandled_inform_handler = None
         if reply.arguments[0] == 'ok':
