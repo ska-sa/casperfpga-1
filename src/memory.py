@@ -30,9 +30,9 @@ def bin2fp(raw_word, bitwidth, bin_pt, signed):
         else:
             return long(word_masked)
     else:
-        quotient = word_masked / (2**bin_pt)
+        quotient = word_masked // (2**bin_pt)
         rem = word_masked - (quotient * (2**bin_pt))
-        return quotient + (float(rem) / (2**bin_pt))
+        return quotient + (float(rem) // (2**bin_pt))
     raise RuntimeError
 
 
@@ -63,7 +63,7 @@ def fp2fixed(num, bitwidth, bin_pt, signed):
     else:
         limits = [0, (2**bitwidth) - 1]
     scaled = min(limits[1], max(limits[0], scaled))
-    unscaled = scaled / ((2**bin_pt) * 1.0)
+    unscaled = scaled // ((2**bin_pt) * 1.0)
     return unscaled
 
 
@@ -99,7 +99,7 @@ class Memory(bitfield.Bitfield):
     def __init__(self, name, width_bits, address, length_bytes):
         """
         A chunk of memory on a device.
-        
+
         :param name: a name for this memory
         :param width_bits: the width, in BITS, PER WORD
         :param address: the start address in device memory
@@ -124,7 +124,7 @@ class Memory(bitfield.Bitfield):
         """
         :return: the memory block's length, in Words
         """
-        return self.length_bytes / (self.width_bits / 8)
+        return self.length_bytes // (self.width_bits // 8)
 
     # def __setattr__(self, name, value):
     #     try:
@@ -137,7 +137,7 @@ class Memory(bitfield.Bitfield):
     def read_raw(self, **kwargs):
         """
         Placeholder for child classes.
-        
+
         :return: (rawdata, timestamp)
         """
         raise RuntimeError('Must be implemented by subclass.')
@@ -166,13 +166,15 @@ class Memory(bitfield.Bitfield):
         Does not use construct, just struct and iterate through.
         Faster than construct. Who knew?
         """
-        if not(isinstance(rawdata, str) or isinstance(rawdata, buffer)):
+        if not isinstance(rawdata, bytes):
+            # But the struct.unpack requires bytes (?)
             raise TypeError('self.read_raw returning incorrect datatype. '
-                            'Must be str or buffer.')
+                            'Must be of type bytes.')
+        # import IPython; IPython.embed()
         fbytes = struct.unpack('%iB' % self.length_bytes, rawdata)
-        width_bytes = self.width_bits / 8
+        width_bytes = self.width_bits // 8
         memory_words = []
-        for wordctr in range(0, len(fbytes) / width_bytes):
+        for wordctr in range(0, len(fbytes) // width_bytes):
             startindex = wordctr * width_bytes
             wordl = 0
             for bytectr in range(0, width_bytes):
@@ -183,10 +185,10 @@ class Memory(bitfield.Bitfield):
             memory_words.append(wordl)
         # now we have all the words as longs, so carry on
         processed = {}
-        for field in self._fields.itervalues():
+        for field in self._fields.values():
             processed[field.name] = []
         for ctr, word in enumerate(memory_words):
-            for field in self._fields.itervalues():
+            for field in self._fields.values():
                 word_shift = word >> field.offset
                 word_done = bin2fp(word_shift, field.width_bits,
                                    field.binary_pt, field.numtype == 1)

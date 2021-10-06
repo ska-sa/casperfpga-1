@@ -59,7 +59,7 @@ class Register(Memory):
         Return a string with information about this Register instance.
         """
         fstring = ''
-        for field in self._fields.iterkeys():
+        for field in self._fields.keys():
             fstring += field + ', '
         if fstring[-2:] == ', ':
             fstring = fstring[:-2]
@@ -179,7 +179,7 @@ class Register(Memory):
     def write(self, **kwargs):
         """
         Write fields in a register, using keyword arguments for fields
-        
+
         :param kwargs:
         """
         fint, pulse = self._write_common(**kwargs)

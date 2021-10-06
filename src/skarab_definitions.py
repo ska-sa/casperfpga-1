@@ -753,6 +753,8 @@ class Command(object):
             elif type(value) == str:
                 for c in struct.unpack('!'+'c'*len(value), str(value).encode('ascii')):
                     payload += c
+            elif type(value) == bool:
+                payload += self.pack_two_bytes(value)
             else:
                 raise TypeError("Don't know how to make a payload from {}, which appears to be a {}.".format( \
                     value, type(value)))

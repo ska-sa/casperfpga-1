@@ -1,6 +1,5 @@
 import setuptools
 import glob
-import sysconfig
 import os
 
 NAME = 'casperfpga'
@@ -24,7 +23,7 @@ except Exception as exc:
 
 
 # extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
-extra_compile_args = ['-O2', '-Wall']
+extra_compile_args = ['-O2', '-Wall', '-g']
 progska_extension = setuptools.Extension(
     'casperfpga.progska',
     # sources=['progska/_progska.c', 'progska/progska.c', 'progska/th.c',
@@ -33,7 +32,7 @@ progska_extension = setuptools.Extension(
             'progska/netc.c'],
     include_dirs=['progska'],
     language='c',
-    # extra_compile_args=extra_compile_args,
+    extra_compile_args=extra_compile_args,
     # extra_link_args=['-static'],
 )
 
@@ -51,11 +50,11 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     # Specify version in-line here
     install_requires=[
-        'katcp==0.7.0',
+        'katcp',
         'numpy',
         'odict',
         'setuptools',
-        'tornado<5',
+        'six',
     ],
     packages=['casperfpga', 'casperfpga.progska'],
     package_dir={'casperfpga': 'src', 'casperfpga.progska': 'progska'},
@@ -67,7 +66,7 @@ setuptools.setup(
     keywords='casper ska meerkat fpga',
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.8',
         'Operating System :: OS Independent',
 	    'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering :: Astronomy',

@@ -4,6 +4,10 @@ import logging
 import time
 import socket
 
+import faulthandler
+
+# from wurlitzer import pipes
+
 from . import skarab_definitions as sd
 from . import progska
 from .utils import threaded_fpga_operation as thop
@@ -47,7 +51,7 @@ class ImageProcessor(object):
         self.extract = extract_to_disk
 
     def make_bin(self):
-        """ 
+        """
         :return: name of a produced .bin file
         """
         raise NotImplementedError
@@ -71,23 +75,24 @@ class FpgProcessor(ImageProcessor):
         """
         :return: the name of a produced .bin file
         """
-        fpg_file = open(self.image_file, 'r')
+        fpg_file = open(self.image_file, 'rb')
         fpg_contents = fpg_file.read()
         fpg_file.close()
 
         # scan for the end of the fpg header
-        if fpg_contents.find('?quit') == -1:
+        magicword_encoded = '?quit'.encode()
+        if fpg_contents.find(magicword_encoded) == -1:
             raise IOError('{} is not a valid fpg file!'.format(self.image_file))
 
         # exract the bitstream portion of the file
-        bitstream_start = fpg_contents.find('?quit') + len('?quit') + 1
+        bitstream_start = fpg_contents.find(magicword_encoded) + len(magicword_encoded) + 1
         bitstream = fpg_contents[bitstream_start:]
 
         # check if bitstream is compressed using magic number for gzip
-        if bitstream.startswith('\x1f\x8b\x08'):
-            import zlib
-            bitstream = zlib.decompress(bitstream, 16 + zlib.MAX_WBITS)
-            LOGGER.debug('Decompressing compressed bitstream.')
+        # if bitstream.startswith('\x1f\x8b\x08'):
+        import zlib
+        bitstream = zlib.decompress(bitstream, 16 + zlib.MAX_WBITS)
+        LOGGER.debug('Decompressing compressed bitstream.')
 
         if not self.extract:
             return bitstream, None
@@ -197,8 +202,8 @@ class BinProcessor(ImageProcessor):
         bitstream = fptr.read()
         fptr.close()
         # check if the valid header substring exists
-        valid_string = '\xff\xff\x00\x00\x00\xdd\x88\x44\x00\x22\xff\xff'
-        swapped_string = '\xff\xff\x00\x00\xdd\x00\x44\x88\x22\x00'
+        valid_string = b'\xff\xff\x00\x00\x00\xdd\x88\x44\x00\x22\xff\xff'
+        swapped_string = b'\xff\xff\x00\x00\xdd\x00\x44\x88\x22\x00'
         if bitstream.find(valid_string) == 30:
             if not self.extract:
                 return bitstream, None
@@ -247,6 +252,8 @@ def upload_to_ram_progska(filename, fpga_list, chunk_size=1988):
     """
     upload_start_time = time.time()
     binname = '/tmp/fpgstream_' + str(os.getpid()) + '.bin'
+    # temp_filename = filename.split('.')[0]
+    # binname = f'/home/apatel/{temp_filename}.bin'
     processor = choose_processor(filename)
     processor = processor(filename, binname)
     binname = processor.make_bin()[1]
@@ -254,17 +261,30 @@ def upload_to_ram_progska(filename, fpga_list, chunk_size=1988):
 
     # clear sdram of all fpgas before uploading
     clear_skarabs_sdram(fpga_list)
-    
+    # import ipdb; ipdb.set_trace()
+    # print('Dumping traceback...')
+    # faulthandler.dump_traceback(all_threads=True)
+
     if chunk_size not in [1988, 3976, 7952]:
         raise sd.SkarabProgrammingError(
            'chunk_size can only be 1988, 3976 or 7952')
-        return 0
+
     try:
+        # with pipes() as (stdout, stderr):
         retval = progska.upload(binname, fpga_hosts, str(chunk_size))
+        # stdoutput = stdout.read()
     except RuntimeError as exc:
         os.remove(binname)
         raise sd.SkarabProgrammingError(
             'progska returned error: %s' % exc.message)
+    finally:
+        # stdoutput = stdout.read()
+        print('Dumping traceback...')
+        faulthandler.dump_traceback(all_threads=True)
+    # stdoutput = stdout.read()
+    # stderrput = stderr.read()
+    # print(stdoutput)
+    # print(stderrput)
     os.remove(binname)
     if retval != 0:
         raise sd.SkarabProgrammingError(

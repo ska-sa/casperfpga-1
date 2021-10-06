@@ -5,6 +5,7 @@ __author__ = 'paulp'
 import argparse
 
 from casperfpga.casperfpga import CasperFpga
+from casperfpga.transport_skarab import SkarabTransport
 
 parser = argparse.ArgumentParser(
     description='Program an FPGA.',
@@ -27,7 +28,7 @@ if args.log_level != '':
         raise RuntimeError('No such log level: %s' % log_level)
 
 # create the device and connect to it
-fpga = CasperFpga(args.hostname, 7147)
+fpga = CasperFpga(args.hostname, 7147, transport=SkarabTransport)
 fpga.upload_to_ram_and_program(args.fpgfile)
 fpga.disconnect()
 # end

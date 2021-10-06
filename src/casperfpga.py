@@ -153,7 +153,7 @@ class CasperFpga(object):
         except:
             pass
 
-        
+
     def choose_transport(self, host_ip):
         """
         Test whether a given host is a katcp client or a skarab
@@ -207,7 +207,7 @@ class CasperFpga(object):
         used to setup the logger
 
         :param log_level: String input defining the logging_level:
-                           
+
                             Level      | Numeric Value
                             --------------------------
                             CRITICAL   | 50
@@ -279,9 +279,9 @@ class CasperFpga(object):
     def set_igmp_version(self, version):
         """
         Sets version of IGMP multicast protocol to use
-        
+
         * This method is only available to katcp-objects
-        
+
         :param version: IGMP protocol version, 0 for kernel default, 1, 2 or 3
         """
         return self.transport.set_igmp_version(version)
@@ -322,7 +322,7 @@ class CasperFpga(object):
                 self.get_system_information(filename,
                                             initialise_objects=initialise_objects)
 
-        
+
         # The Red Pitaya doesn't respect network-endianness. It should.
         # For now, detect this board so that an endianness flip can be
         # inserted between the CasperFpga and the underlying transport layer
@@ -562,7 +562,7 @@ class CasperFpga(object):
     def _create_memory_devices(self, device_dict, memorymap_dict, legacy_reg_map=True, **kwargs):
         """
         Create memory devices from dictionaries of design information.
-        
+
         :param device_dict: raw dictionary of information from tagged
             blocks in Simulink design, keyed on device name
         :param memorymap_dict: dictionary of information that would have been
@@ -618,7 +618,7 @@ class CasperFpga(object):
         :return: None
         """
         for device_name, device_info in list(device_dict.items()):
-            
+
             if device_name == '':
                 raise NameError('There\'s a problem somewhere, got a blank '
                                 'device name?')
@@ -638,22 +638,22 @@ class CasperFpga(object):
 
                 new_device = known_device_class.from_device_info(self,
                                 device_name, device_info, initialise=initialise)
-                
+
                 if new_device.name in list(self.adc_devices.keys()):
                     errmsg = 'Device {} of type {} already exists in \
                              the devices list'.format(new_device.name, type(new_device))
 
                     raise NameError(errmsg)
-                
+
                 self.devices[device_name] = new_device
                 self.adc_devices[device_name] = new_device
 
                 container = getattr(self, known_device_container)
                 setattr(container, device_name, new_device)
-                
+
                 assert id(getattr(container, device_name)) == id(new_device)
                 assert id(new_device) == id(self.adc_devices[device_name])
-        
+
 
     def _create_other_devices(self, device_dict, **kwargs):
         """
@@ -675,7 +675,7 @@ class CasperFpga(object):
     def device_names_by_container(self, container_name):
         """
         Return a list of devices in a certain container.
-        
+
         :param container_name: String to search for in containers in memory_devices
         :return: List of strings matching the description
         """
