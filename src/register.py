@@ -148,7 +148,7 @@ class Register(Memory):
             _intval = fp2fixed_int(new_values[_f.name], _f.width_bits,
                                    _f.binary_pt, _f.numtype == 1)
             fixed_int |= (_intval << _f.offset)
-
+            
         # double-check the integer value is not too large
         if fixed_int > (2**32)-1:
             LOGGER.error('%s: problem writing to register %s:' %

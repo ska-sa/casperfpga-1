@@ -32,7 +32,7 @@ def bin2fp(raw_word, bitwidth, bin_pt, signed):
     else:
         quotient = word_masked // (2**bin_pt)
         rem = word_masked - (quotient * (2**bin_pt))
-        return quotient + (float(rem) // (2**bin_pt))
+        return quotient + (float(rem) / (2**bin_pt))
     raise RuntimeError
 
 
@@ -63,7 +63,7 @@ def fp2fixed(num, bitwidth, bin_pt, signed):
     else:
         limits = [0, (2**bitwidth) - 1]
     scaled = min(limits[1], max(limits[0], scaled))
-    unscaled = scaled // ((2**bin_pt) * 1.0)
+    unscaled = scaled / ((2**bin_pt) * 1.0)
     return unscaled
 
 
