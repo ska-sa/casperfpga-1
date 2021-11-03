@@ -55,6 +55,8 @@ class ADS5296fw():
         self._desperate_debug("CS:%d 0x0f (wrote 0x0400) read 0x%x" % (cs, self.read_spi(0x0F, cs)))
         self.write_spi(0x07, 0x0001, cs) # enable interleave
         self._desperate_debug("CS:%d 0x07 (wrote 0x0001) read 0x%x" % (cs, self.read_spi(0x07, cs)))
+        self.write_spi(0x24, 0x00cc, cs) # Invert every other channel (compensate for layout flip of p/n)
+        self._desperate_debug("CS:%d 0x24 (wrote 0x00cc) read 0x%x" % (cs, self.read_spi(0x24, cs)))
         #self.write_spi(0x42, 0x8000, cs) # DDR phase
         #self.logger._desperate_debug("CS:%d"%cs, hex(self.read_spi(0x42, cs)))
         self.write_spi(0x46, 0x8104, cs) # 10b serialization, LSB first, 2's complement, DDR
