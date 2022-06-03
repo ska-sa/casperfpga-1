@@ -1,7 +1,8 @@
-from synth import *
-from adc import *
-from clockswitch import *
-from wishbonedevice import WishBoneDevice
+import numpy as np
+from .synth import *
+from .adc import *
+from .clockswitch import *
+from .wishbonedevice import WishBoneDevice
 import logging
 
 logger = logging.getLogger(__name__)
@@ -88,8 +89,8 @@ class SNAPADC(object):
 
         # test pattern for clock aligning
         pats = [0b10101010,0b01010101,0b00000000,0b11111111]
-        mask = (1<<(self.RESOLUTION/2))-1
-        ofst = self.RESOLUTION/2
+        mask = (1 << (self.resolution // 2)) - 1
+        ofst = self.resolution // 2
         self.p1 = ((pats[0] & mask) << ofst) + (pats[3] & mask)
         self.p2 = ((pats[1] & mask) << ofst) + (pats[2] & mask)
 
@@ -255,7 +256,7 @@ class SNAPADC(object):
 
     def _get(self, data, mask):
         data = data & mask
-        return data / (mask & -mask)
+        return data // (mask & -mask)
 
     def _set(self, d1, d2, mask=None):
         # Update some bits of d1 with d2, while keep other bits unchanged
@@ -414,9 +415,11 @@ class SNAPADC(object):
         elif laneSel not in self.laneList:
             raise ValueError("Invalid parameter")
 
-        if not isinstance(tap, int):
+        if not isinstance(tap, (int, np.int64)):
             raise ValueError("Invalid parameter")
-
+            if isinstance(tap, np.int64):
+                tap = int(tap)   # Fix for Py3
+ 
         strl = ','.join([str(c) for c in laneSel])
         strc = ','.join([str(c) for c in chipSel])
         logger.debug('Set DelayTap of lane {0} of chip {1} to {2}'
@@ -552,7 +555,7 @@ class SNAPADC(object):
             raise ValueError("Invalid parameter")
 
         if taps==True:
-            taps = range(32)
+            taps = list(range(32))
         elif taps in self.adcList:
             taps = [taps]
         if not isinstance(taps,list) and taps!=None:
@@ -574,8 +577,8 @@ class SNAPADC(object):
             self.adc.test('pat_sync')
             # pattern1 = 0b11110000 when self.RESOLUTION is 8
             # pattern1 = 0b111111000000 when self.RESOLUTION is 12
-            pattern1 = ((2**(self.RESOLUTION/2))-1) << (self.RESOLUTION/2)
-            pattern1 = self._signed(pattern1,self.RESOLUTION)
+            pattern1 = ((2 ** (self.resolution // 2)) - 1) << (self.resolution // 2)
+            pattern1 = self._signed(pattern1, self.resolution)
         elif isinstance(pattern1,int) and pattern2==None:
             # single pattern mode
 
@@ -779,8 +782,8 @@ class SNAPADC(object):
 
             for adc in self.adcList:
                 for lane in self.laneList:
-                    vals = np.array(errs[adc].values())[:,lane]
-                    t = self.decideDelay(vals)  # Find a proper tap setting 
+                    vals = np.array(list(errs[adc].values()))[:,lane]
+                    t = self.decide_delay(vals)  # Find a proper tap setting
                     if not t:
                         logger.error("ADC{0} lane{1} delay decision failed".format(adc,lane))
                     else:
