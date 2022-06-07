@@ -10,7 +10,7 @@ import contextlib
 
 from threading import Lock
 
-import CasperLogHandlers
+from . import CasperLogHandlers
 
 from . import skarab_definitions as sd
 from . import skarab_fileops as skfops

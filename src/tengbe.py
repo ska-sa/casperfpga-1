@@ -10,6 +10,12 @@ from .gbe import Gbe
 
 LOGGER = logging.getLogger(__name__)
 
+STRUCT_CTYPES = {1: 'B', 2: 'H', 4: 'L', 8: 'Q'}
+STRUCT_CTYPES_TO_B = {'B': 1, 'H': 2, 'L': 4, 'Q': 8}
+
+TENGBE_UNIFIED_MMAP_TXT = resource_filename('casperfpga', 'tengbe_mmap.txt')
+TENGBE_MMAP_LEGACY_TXT  = resource_filename('casperfpga', 'tengbe_mmap_legacy.txt')
+
 # Offsets for fields in the memory map, in bytes
 OFFSET_CORE_TYPE   = 0x0
 OFFSET_BUFFER_SIZE = 0x4
@@ -77,6 +83,27 @@ SIZE_COUNT_RST   = 0x4
 SIZE_ARP_CACHE   = 0x3000
 SIZE_TX_BUFFER   = 0x4000
 SIZE_RX_BUFFER   = 0x4000
+
+def read_memory_map_definition(filename):
+    """ Read memory map definition from text file.
+
+    Returns a python dictionary:
+        {REGISTER_NAME1: {'offset': offset, 'size': size, 'rwflag': rwflag},
+         REGISTER_NAME2: {'offset': offset, 'size': size, 'rwflag': rwflag}
+         ...}
+
+    Notes:
+        Used by TenGbe.configure_core() to write to mmap.
+    """
+    mmap_arr = np.genfromtxt(filename, dtype='str', skip_header=1)
+    mmap_keys    = list(mmap_arr[:, 0])
+    mmap_offsets = [int(x, 0) for x in mmap_arr[:, 1]]
+    mmap_size    = [int(x, 0) for x in mmap_arr[:, 2]]
+    mmap_rw      = list(mmap_arr[:, 3])
+    mmap  = {}
+    for ii, k in enumerate(mmap_keys):
+        mmap[k] = {'offset': mmap_offsets[ii], 'size': mmap_size[ii], 'rwflag': mmap_rw[ii]}
+    return mmap
 
 class TenGbe(Memory, Gbe):
     """
